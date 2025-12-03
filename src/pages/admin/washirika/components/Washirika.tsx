@@ -180,7 +180,7 @@ export default function Washirika({ onAddNew }: { onAddNew: () => void }) {
         });
         successful++;
       } catch (error) {
-        console.warn(`❌ Failed to add member ${memberId} to group ${groupId}: ${error}`);
+        console.warn(` Failed to add member ${memberId} to group ${groupId}: ${error}`);
       }
     }
 
@@ -194,26 +194,55 @@ export default function Washirika({ onAddNew }: { onAddNew: () => void }) {
     setSelectedGroupIds([]);
   };
 
-  const handleApprove = async (userId: number) => {
-    const response = await apiFetch('/authorize-user', {
-      method: 'POST',
-      body: JSON.stringify({ user_id: userId }),
-    });
+ const handleApprove = async (userId: number) => {
+  const response = await apiFetch('/authorize-user', {
+    method: 'POST',
+    body: JSON.stringify({ user_id: userId }),
+  });
 
-    if (response.status === 'success') {
-      const approvedMemberId = response.member.id;
-      setMembers(prev =>
-        prev.map(m =>
-          m.user_id === userId
-            ? { ...m, role: 'mshirika', member_id: approvedMemberId }
-            : m
-        )
-      );
-      alert('Mshirika ameidhinishwa.');
-    } else {
-      alert(response.message || 'Imeshindikana.');
+  if (response.status === 'success') {
+    const approvedMemberId = response.member.id;
+
+    // Update state
+    setMembers(prev =>
+      prev.map(m =>
+        m.user_id === userId
+          ? { ...m, role: 'mshirika', member_id: approvedMemberId, membership_number: response.member.membership_number }
+          : m
+      )
+    );
+
+    alert('Mshirika ameidhinishwa.');
+
+    // Send SMS and Email
+    const member = members.find(m => m.user_id === userId);
+    if (member) {
+      try {
+        const smsResponse = await apiFetch('/send-sms', {
+          method: 'POST',
+          body: JSON.stringify({
+            phone: member.phone,
+            email: member.email,
+            name: member.full_name,
+            message: `Hello ${member.full_name}, your membership number is ${response.member.membership_number}`,
+            send_email: true
+          })
+        });
+
+        if (smsResponse.status === 'success') {
+          console.log('SMS and Email sent successfully', smsResponse);
+        } else {
+          console.warn('Failed to send SMS/Email', smsResponse);
+        }
+      } catch (err) {
+        console.error('Error sending SMS/Email:', err);
+      }
     }
-  };
+  } else {
+    alert(response.message || 'Imeshindikana.');
+  }
+};
+
 
   const handleReject = async (id: number, role: string | null) => {
     if (role === 'admin') return;
@@ -360,7 +389,7 @@ export default function Washirika({ onAddNew }: { onAddNew: () => void }) {
                   success++;
                 }
               } catch (err) {
-                console.error(`❌ Failed to deactivate member ${user?.full_name}:`, err);
+                console.error(` Failed to deactivate member ${user?.full_name}:`, err);
               }
             }
 
