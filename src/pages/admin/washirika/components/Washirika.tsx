@@ -203,30 +203,45 @@ export default function Washirika({ onAddNew }: { onAddNew: () => void }) {
   if (response.status === 'success') {
     const approvedMemberId = response.member.id;
 
-    // Update state
+    // Update members state
     setMembers(prev =>
       prev.map(m =>
         m.user_id === userId
-          ? { ...m, role: 'mshirika', member_id: approvedMemberId, membership_number: response.member.membership_number }
+          ? {
+              ...m,
+              role: 'mshirika',
+              member_id: approvedMemberId,
+              membership_number: response.member.membership_number,
+            }
           : m
       )
     );
 
     alert('Mshirika ameidhinishwa.');
 
-    // Send SMS and Email
+    // Send SMS & Email
     const member = members.find(m => m.user_id === userId);
     if (member) {
+      // Ensure phone number is in international format
+      const rawPhone = member.phone;
+      if (!rawPhone) {
+        console.warn('Member has no phone number, cannot send SMS.');
+        return;
+      }
+
+      const formattedPhone =
+        rawPhone.startsWith('255') ? rawPhone : '255' + rawPhone.replace(/^0/, '');
+
       try {
         const smsResponse = await apiFetch('/send-sms', {
           method: 'POST',
           body: JSON.stringify({
-            phone: member.phone,
+            phone: formattedPhone,
             email: member.email,
             name: member.full_name,
             message: `Hello ${member.full_name}, your membership number is ${response.member.membership_number}`,
-            send_email: true
-          })
+            send_email: true,
+          }),
         });
 
         if (smsResponse.status === 'success') {
@@ -242,7 +257,6 @@ export default function Washirika({ onAddNew }: { onAddNew: () => void }) {
     alert(response.message || 'Imeshindikana.');
   }
 };
-
 
   const handleReject = async (id: number, role: string | null) => {
     if (role === 'admin') return;
