@@ -79,11 +79,11 @@ export default function LoginPage() {
         <div className="w-full max-w-md bg-gradient-to-br from-[#130728] via-[#211a45] to-[#253266] rounded-3xl shadow-2xl border border-white/10 p-8 text-white">
           <div className="flex flex-col items-center mb-6">
             <div className="bg-[#f0ce32] rounded-full p-3">
-              <span className="text-black font-bold text-xl">FPCT KURASINI</span>
+              <span className="text-black font-bold text-xl">FPCT CHAMWINO</span>
             </div>
 
             <h2 className="mt-4 text-2xl font-bold text-center">
-              Mfumo wa FPCT Kurasini
+              Mfumo wa FPCT Chamwino
             </h2>
             <p className="text-sm text-gray-300 text-center mt-2">
               Karibu katika mfumo wa taarifa za washirika, wageni, fedha, matukio na uongozi wa kanisa.

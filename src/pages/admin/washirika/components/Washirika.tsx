@@ -24,18 +24,31 @@ interface Group {
 
 interface User {
   id: number;
-  user_id: number;
+
+
+  // Basic info
   full_name: string;
-  email: string;
-  phone: string;
+  user_id: number;
+  email: string | null;
+  phone: string | null;
+  gender?: string | null;
+  birth_date?: string | null;
+  birth_place?: string | null;
+
+  // Church info
   role: string | null;
-  created_at: string;
-  member_id?: number;
-  deactivation_reason?: string;
-  membership_status?: string;
+  membership_number?: string | null;
+  membership_status?: string | null;
+  deactivation_reason?: string | null;
+
+  // Relations
   groups?: Group[];
-  membership_number?: string;
+
+  // Meta
+  created_at: string;
+  member_id?: number | null;
 }
+
 
 export default function Washirika({ onAddNew }: { onAddNew: () => void }) {
   const [members, setMembers] = useState<User[]>([]);
@@ -118,40 +131,157 @@ export default function Washirika({ onAddNew }: { onAddNew: () => void }) {
     setSelectedMembers(allSelected ? [] : members.map(m => m.id));
   };
 
-  const handleExportExcel = () => {
-    const exportData = members.map((m, i) => ({
+const handleExportExcel = () => {
+  const exportData = members
+    .filter(
+      (m) =>
+        m.role !== 'mchungaji' &&
+        (m.membership_status === ACTIVE_STATUS || m.membership_status === null)
+    )
+    .map((m, i) => ({
       '#': i + 1,
-      Jina: m.full_name,
-      Simu: m.phone,
-      Nafasi: m.role || '—',
-      Makundi: m.groups?.map(g => g.name).join(', ') || '—',
+      'Jina Kamili': m.full_name,
+      'Namba ya Mshirika': m.membership_number || '—',
+      'Simu': m.phone || '—',
+      'Barua Pepe': m.email || '—',
+      'Jinsia': m.gender || '—',
+      'Tarehe ya Kuzaliwa': m.birth_date || '—',
+      'Mahali pa Kuzaliwa': m.birth_place || '—',
+      'Nafasi': m.role || '—',
+      'Hali ya Ushirika':
+        m.membership_status === 'inactive'
+          ? 'Ameondolewa'
+          : 'Hai',
+      'Sababu ya Kuondolewa': m.deactivation_reason || '—',
+      'Makundi':
+        m.groups && m.groups.length > 0
+          ? m.groups.map((g) => g.name).join(', ')
+          : '—',
+      'Tarehe ya Kusajiliwa': m.created_at
+        ? m.created_at.split('T')[0]
+        : '—',
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Washirika');
-    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([buffer], { type: 'application/octet-stream' });
-    saveAs(blob, 'washirika.xlsx');
+  const worksheet = XLSX.utils.json_to_sheet(exportData);
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Washirika');
+
+  const buffer = XLSX.write(workbook, {
+    bookType: 'xlsx',
+    type: 'array',
+  });
+
+  saveAs(
+    new Blob([buffer], {
+      type:
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    }),
+    'orodha_ya_washirika.xlsx'
+  );
+};
+
+
+const handleExportPdf = () => {
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm',
+    format: 'a4',
+  });
+
+  // Helper to format dates
+  const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '—';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-GB'); // DD/MM/YYYY
   };
 
-  const handleExportPdf = () => {
-    const doc = new jsPDF();
-    const tableData = members.map((m, i) => [
+  // Prepare table data
+  const tableData = members
+    .filter(
+      (m) =>
+        m.role !== 'mchungaji' &&
+        (m.membership_status === ACTIVE_STATUS || m.membership_status === null)
+    )
+    .map((m, i) => [
       i + 1,
-      m.full_name,
-      m.phone,
-      m.role || '—',
-      m.groups?.map(g => g.name).join(', ') || '—'
+      m.full_name || '—',
+      m.membership_number || '—',
+      m.phone || '—',
+      m.email || '—',
+      m.gender || '—',
+      formatDate(m.birth_date),
+      m.birth_place || '—',
+      // m.role || '—',
+      m.membership_status === 'inactive' ? 'Ameondolewa' : 'Hai',
+      m.groups && m.groups.length > 0
+        ? m.groups.map((g) => g.name).join(', ')
+        : '—',
+      formatDate(m.created_at),
     ]);
-    doc.text('Orodha ya Washirika', 14, 14);
-    autoTable(doc, {
-      startY: 20,
-      head: [['#', 'Jina', 'Simu', 'Nafasi', 'Makundi']],
-      body: tableData,
-    });
-    doc.save('washirika.pdf');
-  };
+
+  // Set title
+  doc.setFontSize(14);
+  doc.text('ORODHA YA WASHIRIKA', 14, 14);
+
+  // Generate table
+  autoTable(doc, {
+    startY: 20,
+    head: [[
+      '#',
+      'Jina Kamili',
+      'Namba ya Mshirika',
+      'Simu',
+      'Barua Pepe',
+      'Jinsia',
+      'Tarehe ya Kuzaliwa',
+      'Mahali pa Kuzaliwa',
+      // 'Nafasi',
+      'Hali ya Ushirika',
+      'Makundi',
+      'Tarehe ya Kusajiliwa',
+    ]],
+    body: tableData,
+    styles: {
+      fontSize: 8,
+      cellPadding: 2,
+      overflow: 'linebreak', // wrap text instead of cutting
+    },
+    headStyles: {
+      fillColor: [22, 163, 74], // green
+      textColor: 255,
+      halign: 'center',
+    },
+    bodyStyles: { valign: 'middle' },
+    columnStyles: {
+      0: { cellWidth: 8 },
+      1: { cellWidth: 30 },
+      2: { cellWidth: 25 },
+      3: { cellWidth: 25 },
+      4: { cellWidth: 40 },
+      5: { cellWidth: 18 },
+      6: { cellWidth: 25 },
+      7: { cellWidth: 30 },
+      8: { cellWidth: 20 },
+      9: { cellWidth: 20 },
+      10: { cellWidth: 28 },
+      11: { cellWidth: 40 },
+      12: { cellWidth: 25 },
+    },
+    margin: { left: 10, right: 10 },
+    didDrawPage: () => {
+      doc.setFontSize(9);
+      doc.text(
+        `Imetolewa: ${new Date().toLocaleDateString('en-GB')}`,
+        doc.internal.pageSize.getWidth() - 60,
+        doc.internal.pageSize.getHeight() - 10
+      );
+    },
+  });
+
+  // Save PDF
+  doc.save('orodha_ya_washirika.pdf');
+};
+
 
   const handleAssignToGroups = async () => {
     const assignments: { groupId: number; memberId: number }[] = [];
