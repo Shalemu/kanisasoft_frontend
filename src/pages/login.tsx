@@ -13,60 +13,65 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    if (!email || !password) {
-      toast.warning('Tafadhali jaza taarifa zote.');
+  if (!email || !password) {
+    toast.warning('Tafadhali jaza taarifa zote.');
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const data = await apiFetch('/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+
+    const { token, user } = data;
+
+    // Pending approval
+    if (!user?.role) {
+      toast.warning(
+        data.message ||
+          'Asante kwa kujisajili. Maombi yako yanahitaji kuidhinishwa na uongozi wa kanisa. Tutakujulisha mara tu utakapokubalika.'
+      );
       return;
     }
 
-    setLoading(true);
-
-    try {
-      const data = await apiFetch('/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (data.error) {
-        toast.error(data.message || 'Taarifa za kuingia si sahihi.');
-        return;
-      }
-
-      const { token, user } = data;
-
-      if (!token || !user?.id) {
-        toast.error('Login haikufanikiwa. Hakikisha taarifa zako.');
-        return;
-      }
-
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('user_id', user.id.toString());
-
-      const role = user.role?.toLowerCase()?.trim();
-      const redirectMap: Record<string, string> = {
-        admin: '/admin',
-        katibu: '/katibu',
-        'mtunza hazina': '/treasurer',
-        mchungaji: '/mchungaji',
-        kiongozi: '/group-leader',
-        mshirika: '/member',
-      };
-
-      const redirect = redirectMap[role || ''];
-      if (redirect) {
-        await router.push(redirect);
-      } else {
-        toast.warning(`Hujapangiwa jukumu "${user.role}".`);
-      }
-    } catch (err) {
-      toast.error('Tatizo la mfumo. Jaribu tena.');
-    } finally {
-      setLoading(false);
+    // Login failure
+    if (!token || !user?.id) {
+      toast.error('Login haikufanikiwa. Hakikisha taarifa zako.');
+      return;
     }
-  };
+
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    localStorage.setItem('user_id', user.id.toString());
+
+    const role = user.role?.toLowerCase()?.trim();
+    const redirectMap: Record<string, string> = {
+      admin: '/admin',
+      katibu: '/katibu',
+      'mtunza hazina': '/treasurer',
+      mchungaji: '/mchungaji',
+      kiongozi: '/group-leader',
+      mshirika: '/member',
+    };
+
+    const redirect = redirectMap[role || ''];
+    if (redirect) {
+      await router.push(redirect);
+    } else {
+      toast.warning(`Hujapangiwa jukumu "${user.role}".`);
+    }
+  } catch (err) {
+    toast.error('Tatizo la mfumo. Jaribu tena.');
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <>
