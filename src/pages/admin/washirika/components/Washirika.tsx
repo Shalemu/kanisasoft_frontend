@@ -189,11 +189,12 @@ const handleExportPdf = () => {
   });
 
   // Helper to format dates
-  const formatDate = (dateStr?: string) => {
-    if (!dateStr) return '—';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-GB'); // DD/MM/YYYY
-  };
+const formatDate = (dateStr: string | null | undefined) => {
+  if (!dateStr) return '—';
+  const date = new Date(dateStr);
+  return date.toLocaleDateString('en-GB'); // DD/MM/YYYY
+};
+
 
   // Prepare table data
   const tableData = members
