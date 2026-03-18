@@ -5,6 +5,7 @@ import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import Swal from 'sweetalert2';
 import {
   FaArrowLeft,
   FaUsers,
@@ -16,6 +17,7 @@ import {
   FaUserTie,
   FaSearch,
 } from 'react-icons/fa';
+
 
 interface Member {
   id: number;
@@ -127,57 +129,38 @@ export default function GroupMembers({
 
   // Assign / Remove Leader
   const appointLeader = async () => {
-    if (selectedMemberIds.length !== 1) {
-      alert('Chagua mshirika mmoja tu.');
-      return;
-    }
+  if (selectedMemberIds.length !== 1) {
+    Swal.fire({
+      title: 'Tahadhari!',
+      text: 'Chagua mshirika mmoja tu.',
+      icon: 'warning',
+      confirmButtonText: 'Sawa',
+      confirmButtonColor: '#f44336',
+    });
+    return;
+  }
 
-    const selectedId = selectedMemberIds[0];
-    const selectedMember = members.find((m) => m.id === selectedId);
-    if (!selectedMember) return;
+  const selectedId = selectedMemberIds[0];
+  const selectedMember = members.find((m) => m.id === selectedId);
+  if (!selectedMember) return;
 
-    const isSame = selectedId === leaderId;
-    if (!confirm(isSame ? 'Ondoa kiongozi huyu?' : 'Teua huyu kuwa kiongozi?'))
-      return;
+  const isSame = selectedId === leaderId;
 
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/groups/${groupId}/assign-leader`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          membership_number: isSame ? null : selectedMember.membership_number,
-        }),
-      }
-    );
+  Swal.fire({
+    title: 'Uhakika?',
+    text: isSame ? 'Ondoa kiongozi huyu?' : 'Teua huyu kuwa kiongozi?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: isSame ? 'Ndio, ondoa' : 'Ndio, teua',
+    cancelButtonText: 'Hapana',
+    confirmButtonColor: '#f44336',
+    cancelButtonColor: '#3085d6',
+  }).then(async (result) => {
+    if (!result.isConfirmed) return; // stop if user clicks "Hapana"
 
-    const result = await res.json();
-
-    if (result.status === 'success') {
-      setLeader(isSame ? null : selectedMember);
-      setLeaderId(isSame ? null : selectedId);
-      setSelectedMemberIds([]);
-    }
-  };
-
-  // Remove Members
-  const removeMembers = async () => {
-    if (selectedMemberIds.length === 0) {
-      alert('Chagua washirika wa kuondoa.');
-      return;
-    }
-
-    if (!confirm('Una uhakika unataka kuwaondoa hawa washirika?')) return;
-
-    for (const memberId of selectedMemberIds) {
-      const member = members.find((m) => m.id === memberId);
-      if (!member) continue;
-
-      await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/groups/${groupId}/remove-member`,
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/groups/${groupId}/assign-leader`,
         {
           method: 'POST',
           headers: {
@@ -185,17 +168,111 @@ export default function GroupMembers({
             Authorization: `Bearer ${localStorage.getItem('token')}`,
           },
           body: JSON.stringify({
-            membership_number: member.membership_number,
+            membership_number: isSame ? null : selectedMember.membership_number,
           }),
         }
       );
+
+      const data = await res.json();
+
+      if (data.status === 'success') {
+        setLeader(isSame ? null : selectedMember);
+        setLeaderId(isSame ? null : selectedId);
+        setSelectedMemberIds([]);
+
+        Swal.fire({
+          title: 'Imefanikiwa!',
+          text: isSame ? 'Kiongozi ameondolewa kikamilifu.' : 'Kiongozi amewekwa kikamilifu.',
+          icon: 'success',
+          confirmButtonText: 'Sawa',
+          confirmButtonColor: '#f0ce32',
+        });
+      } else {
+        Swal.fire({
+          title: 'Hitilafu!',
+          text: data.message || 'Imeshindikana kubadilisha kiongozi.',
+          icon: 'error',
+          confirmButtonText: 'Sawa',
+          confirmButtonColor: '#f44336',
+        });
+      }
+    } catch (err) {
+      console.error('Error assigning leader', err);
+      Swal.fire({
+        title: 'Hitilafu!',
+        text: 'Imeshindikana kubadilisha kiongozi.',
+        icon: 'error',
+        confirmButtonText: 'Sawa',
+        confirmButtonColor: '#f44336',
+      });
+    }
+  });
+};
+  // Remove Members
+const removeMembers = async () => {
+  if (selectedMemberIds.length === 0) {
+    Swal.fire({
+      title: 'Tahadhari!',
+      text: 'Chagua washirika wa kuondoa.',
+      icon: 'warning',
+      confirmButtonText: 'Sawa',
+      confirmButtonColor: '#f44336',
+    });
+    return;
+  }
+
+  Swal.fire({
+    title: 'Uhakika?',
+    text: 'Una uhakika unataka kuwaondoa hawa washirika?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Ndio, ondoa',
+    cancelButtonText: 'Hapana',
+    confirmButtonColor: '#f44336',
+    cancelButtonColor: '#3085d6',
+  }).then(async (result) => {
+    if (!result.isConfirmed) return; // stop if user clicks "Hapana"
+
+    // deletion logic goes **inside here**
+    for (const memberId of selectedMemberIds) {
+      const member = members.find((m) => m.id === memberId);
+      if (!member) continue;
+
+      try {
+        await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/groups/${groupId}/remove-member`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+            body: JSON.stringify({
+              membership_number: member.membership_number,
+            }),
+          }
+        );
+      } catch (err) {
+        console.error(`Failed to remove member ${member.membership_number}`, err);
+      }
     }
 
+    // update state after deletion
     setMembers((prev) =>
       prev.filter((m) => !selectedMemberIds.includes(m.id))
     );
     setSelectedMemberIds([]);
-  };
+
+    // show success notification
+    Swal.fire({
+      title: 'Imefanikiwa!',
+      text: 'Washirika wameondolewa kikamilifu.',
+      icon: 'success',
+      confirmButtonText: 'Sawa',
+      confirmButtonColor: '#f0ce32',
+    });
+  });
+};
 
   // Export Excel
   const handleExport = () => {

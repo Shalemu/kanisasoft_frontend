@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { FaPlus, FaUsers, FaSearch, FaEdit, FaTrash, FaWhatsapp, FaLink } from 'react-icons/fa';
 import { Dialog } from '@headlessui/react';
+import Swal from 'sweetalert2';
 
 interface Leader {
   full_name: string;
@@ -20,6 +21,9 @@ interface Notification {
   type: 'success' | 'error';
   message: string;
 }
+
+
+
 
 export default function MakundiTab({
   onGroupSelect,
@@ -60,7 +64,13 @@ export default function MakundiTab({
       }
     } catch (err) {
       console.error('Failed to fetch groups', err);
-      showNotification('error', 'Imeshindikana kupata makundi.');
+     Swal.fire({
+  title: 'Hitilafu!',
+  text: 'Imeshindikana kupata makundi.',
+  icon: 'error',
+  confirmButtonText: 'Sawa',
+  confirmButtonColor: '#f44336',
+});
     }
   };
 
@@ -127,21 +137,44 @@ export default function MakundiTab({
       if (res.ok) {
         fetchGroups();
         setIsOpen(false);
-        showNotification('success', data.message || 'Kundi limehifadhiwa kikamilifu.');
+        Swal.fire({
+        title: 'Imefanikiwa!',
+        text: data.message || 'Kundi limehifadhiwa kikamilifu.',
+        icon: 'success',
+        confirmButtonText: 'Sawa',
+        confirmButtonColor: '#f0ce32',
+      });
       } else {
         if (data.errors) setErrors(data.errors);
         if (data.message) showNotification('error', data.message);
       }
     } catch (err) {
       console.error('Error saving group', err);
-      showNotification('error', 'Imeshindikana kuhifadhi kundi.');
+     Swal.fire({
+    title: 'Hitilafu!',
+    text: 'Imeshindikana kuhifadhi kundi.',
+    icon: 'error',
+    confirmButtonText: 'Sawa',
+    confirmButtonColor: '#f44336', // red for error
+  });
     } finally {
       setLoading(false);
     }
   };
 
   const deleteGroup = async (id: number) => {
-    if (!confirm('Una uhakika unataka kufuta kundi hili?')) return;
+  Swal.fire({
+    title: 'Uhakika?',
+    text: 'Una uhakika unataka kufuta kundi hili?',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Ndio, futa',
+    cancelButtonText: 'Hapana',
+    confirmButtonColor: '#f44336',
+    cancelButtonColor: '#3085d6',
+  }).then(async (result) => {
+    if (!result.isConfirmed) return; // User cancelled
+
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/groups/${id}`, {
         method: 'DELETE',
@@ -150,20 +183,42 @@ export default function MakundiTab({
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
+
       const data = await res.json();
+
       if (res.ok) {
+        // Remove the deleted group from state
         setGroups(prev => prev.filter(g => g.id !== id));
         setFilteredGroups(prev => prev.filter(g => g.id !== id));
-        showNotification('success', data.message || 'Kundi limefutwa kikamilifu.');
+
+        Swal.fire({
+          title: 'Imefanikiwa!',
+          text: data.message || 'Kundi limefutwa kikamilifu.',
+          icon: 'success',
+          confirmButtonText: 'Sawa',
+          confirmButtonColor: '#f0ce32',
+        });
       } else {
-        showNotification('error', data.message || 'Imeshindikana kufuta kundi.');
+        Swal.fire({
+          title: 'Hitilafu!',
+          text: data.message || 'Imeshindikana kufuta kundi.',
+          icon: 'error',
+          confirmButtonText: 'Sawa',
+          confirmButtonColor: '#f44336',
+        });
       }
     } catch (err) {
       console.error('Error deleting group', err);
-      showNotification('error', 'Imeshindikana kufuta kundi.');
+      Swal.fire({
+        title: 'Hitilafu!',
+        text: 'Imeshindikana kufuta kundi.',
+        icon: 'error',
+        confirmButtonText: 'Sawa',
+        confirmButtonColor: '#f44336',
+      });
     }
-  };
-
+  });
+};
   return (
     <div className="px-6 py-8 bg-gradient-to-tr from-white to-[#f0f4fc] min-h-screen relative">
       {notification && (
