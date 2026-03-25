@@ -20,7 +20,7 @@ import { toast } from 'react-toastify';
 interface Member {
   id: number;
   full_name?: string;
-  email?: string;
+  // email?: string;
   role?: string;
   membership_number?: string;
   photo_url?: string;
@@ -99,7 +99,7 @@ export default function GroupMembersScreen({ groupId, groupName, onBack }: Props
       body: filtered.map((m, i) => [
         i + 1,
         `${m.full_name || '—'}${m.id === leaderId ? ' (Kiongozi)' : ''}`,
-        m.email || '-',
+        // m.email || '-',
         m.role || '-',
       ]),
     });
@@ -111,7 +111,7 @@ export default function GroupMembersScreen({ groupId, groupName, onBack }: Props
       filtered.map((m, i) => ({
         '#': i + 1,
         Jina: `${m.full_name || '—'}${m.id === leaderId ? ' (Kiongozi)' : ''}`,
-        BaruaPepe: m.email || '',
+        // BaruaPepe: m.email || '',
         Nafasi: m.role || '',
       }))
     );
@@ -224,7 +224,7 @@ export default function GroupMembersScreen({ groupId, groupName, onBack }: Props
                       </span>
                     )}
                   </p>
-                  <p className="text-xs text-gray-500 mt-0.5">{m.email || '-'}</p>
+                  {/* <p className="text-xs text-gray-500 mt-0.5">{m.email || '-'}</p> */}
                   {m.membership_number && <p className="text-xs text-gray-500 mt-0.5">Namba: {m.membership_number}</p>}
                 </div>
                 <div className="flex gap-2 items-center">
