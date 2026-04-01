@@ -36,8 +36,7 @@ export default function OngezaTaarifaZaIbada() {
     e.preventDefault();
 
     try {
-      const body = { ...formData };
-      delete body.total_attendance; // backend calculates total if needed
+    const { total_attendance, ...body } = formData;
 
       const res = await apiFetch('/service-events', {
         method: 'POST',
