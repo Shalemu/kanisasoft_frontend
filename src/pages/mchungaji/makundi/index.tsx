@@ -1,10 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import {
-  FaUsers,
-  FaChartBar,
-} from 'react-icons/fa';
+import { FaChartBar } from 'react-icons/fa';
 import MakundiTab from './components/Makundi';
 import RipotiTab from './components/Ripoti';
 import GroupMembers from './components/GroupMembers';
@@ -20,9 +17,7 @@ export default function MakundiPage() {
       {/* Sidebar / Top Tab Bar */}
       <aside className="w-full md:w-64 bg-[#e6f0fa] text-gray-800 border-b md:border-b-0 md:border-r border-gray-300">
         <div className="p-4 md:p-6 font-semibold">
-          <div className="text-blue-800 text-xs uppercase tracking-widest mb-2 md:mb-4">
-            Sehemu za Makundi
-          </div>
+          <div className="text-blue-800 text-xs uppercase tracking-widest mb-2 md:mb-4">Sehemu za Makundi</div>
           <ul className="flex md:flex-col gap-2">
             <li
               className={`flex-1 md:flex-none px-4 py-2 rounded cursor-pointer flex items-center justify-center md:justify-start gap-2 ${
@@ -35,10 +30,8 @@ export default function MakundiPage() {
                 setSelectedGroupId(null);
               }}
             >
-              <FaUsers className="text-blue-600" />
-              <span className="hidden md:inline">Orodha ya Makundi</span>
+              👥 <span className="hidden md:inline">Orodha ya Makundi</span>
             </li>
-
             <li
               className={`flex-1 md:flex-none px-4 py-2 rounded cursor-pointer flex items-center justify-center md:justify-start gap-2 ${
                 activeTab === 'ripoti'
@@ -50,8 +43,7 @@ export default function MakundiPage() {
                 setSelectedGroupId(null);
               }}
             >
-              <FaChartBar className="text-blue-600" />
-              <span className="hidden md:inline">Ripoti</span>
+              📊 <span className="hidden md:inline">Ripoti</span>
             </li>
           </ul>
         </div>

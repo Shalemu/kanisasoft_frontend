@@ -1,9 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { FaPlus, FaUsers, FaSearch, FaEdit, FaTrash, FaWhatsapp, FaLink } from 'react-icons/fa';
+import { FaPlus, FaUsers, FaSearch, FaEdit, FaTrash } from 'react-icons/fa';
 import { Dialog } from '@headlessui/react';
-import Swal from 'sweetalert2';
 
 interface Leader {
   full_name: string;
@@ -14,16 +13,12 @@ interface Group {
   id: number;
   name: string;
   leader?: Leader | null;
-  whatsapp_link?: string | null;
 }
 
 interface Notification {
   type: 'success' | 'error';
   message: string;
 }
-
-
-
 
 export default function MakundiTab({
   onGroupSelect,
@@ -42,21 +37,25 @@ export default function MakundiTab({
   const [formData, setFormData] = useState({
     name: '',
     leader_membership_number: '',
-    whatsapp_link: ''
   });
 
   useEffect(() => {
     fetchGroups();
   }, []);
 
+  /* ================= FETCH ================= */
   const fetchGroups = async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/groups`, {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/groups`,
+        {
+          headers: {
+            Accept: 'application/json',
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
+
       const data = await res.json();
       if (data.status === 'success') {
         setGroups(data.groups);
@@ -64,23 +63,18 @@ export default function MakundiTab({
       }
     } catch (err) {
       console.error('Failed to fetch groups', err);
-     Swal.fire({
-  title: 'Hitilafu!',
-  text: 'Imeshindikana kupata makundi.',
-  icon: 'error',
-  confirmButtonText: 'Sawa',
-  confirmButtonColor: '#f44336',
-});
+      showNotification('error', 'Imeshindikana kupata makundi.');
     }
   };
 
+  /* ================= FORM ================= */
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const openAddDialog = () => {
-    setFormData({ name: '', leader_membership_number: '', whatsapp_link: '' });
+    setFormData({ name: '', leader_membership_number: '' });
     setEditingGroup(null);
     setIsOpen(true);
   };
@@ -89,29 +83,33 @@ export default function MakundiTab({
     setFormData({
       name: group.name,
       leader_membership_number: group.leader?.membership_number || '',
-      whatsapp_link: group.whatsapp_link || ''
     });
     setEditingGroup(group);
     setIsOpen(true);
   };
 
+  /* ================= SEARCH ================= */
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const q = e.target.value.toLowerCase();
     setSearchQuery(q);
+
     const filtered = groups.filter(
       g =>
         g.name.toLowerCase().includes(q) ||
         g.leader?.full_name.toLowerCase().includes(q) ||
         g.leader?.membership_number.toLowerCase().includes(q)
     );
+
     setFilteredGroups(filtered);
   };
 
+  /* ================= NOTIFICATION ================= */
   const showNotification = (type: 'success' | 'error', message: string) => {
     setNotification({ type, message });
-    setTimeout(() => setNotification(null), 4000);
+    setTimeout(() => setNotification(null), 4000); // auto hide after 4s
   };
 
+  /* ================= SAVE ================= */
   const saveGroup = async () => {
     setLoading(true);
     setErrors({});
@@ -137,43 +135,23 @@ export default function MakundiTab({
       if (res.ok) {
         fetchGroups();
         setIsOpen(false);
-        Swal.fire({
-        title: 'Imefanikiwa!',
-        text: data.message || 'Kundi limehifadhiwa kikamilifu.',
-        icon: 'success',
-        confirmButtonText: 'Sawa',
-        confirmButtonColor: '#f0ce32',
-      });
+        showNotification('success', data.message || 'Kundi limehifadhiwa kikamilifu.');
       } else {
+        // Show validation errors or API error message
         if (data.errors) setErrors(data.errors);
         if (data.message) showNotification('error', data.message);
       }
     } catch (err) {
       console.error('Error saving group', err);
-     Swal.fire({
-    title: 'Hitilafu!',
-    text: 'Imeshindikana kuhifadhi kundi.',
-    icon: 'error',
-    confirmButtonText: 'Sawa',
-    confirmButtonColor: '#f44336', // red for error
-  });
+      showNotification('error', 'Imeshindikana kuhifadhi kundi.');
     } finally {
       setLoading(false);
     }
   };
 
+  /* ================= DELETE ================= */
   const deleteGroup = async (id: number) => {
-  Swal.fire({
-    title: 'Uhakika?',
-    text: 'Una uhakika unataka kufuta kundi hili?',
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonText: 'Ndio, futa',
-    cancelButtonText: 'Hapana',
-    confirmButtonColor: '#f44336',
-    cancelButtonColor: '#3085d6',
-  }).then(async (result) => {
-    if (!result.isConfirmed) return; // User cancelled
+    if (!confirm('Una uhakika unataka kufuta kundi hili?')) return;
 
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/groups/${id}`, {
@@ -187,40 +165,22 @@ export default function MakundiTab({
       const data = await res.json();
 
       if (res.ok) {
-        // Remove the deleted group from state
         setGroups(prev => prev.filter(g => g.id !== id));
         setFilteredGroups(prev => prev.filter(g => g.id !== id));
-
-        Swal.fire({
-          title: 'Imefanikiwa!',
-          text: data.message || 'Kundi limefutwa kikamilifu.',
-          icon: 'success',
-          confirmButtonText: 'Sawa',
-          confirmButtonColor: '#f0ce32',
-        });
+        showNotification('success', data.message || 'Kundi limefutwa kikamilifu.');
       } else {
-        Swal.fire({
-          title: 'Hitilafu!',
-          text: data.message || 'Imeshindikana kufuta kundi.',
-          icon: 'error',
-          confirmButtonText: 'Sawa',
-          confirmButtonColor: '#f44336',
-        });
+        showNotification('error', data.message || 'Imeshindikana kufuta kundi.');
       }
     } catch (err) {
       console.error('Error deleting group', err);
-      Swal.fire({
-        title: 'Hitilafu!',
-        text: 'Imeshindikana kufuta kundi.',
-        icon: 'error',
-        confirmButtonText: 'Sawa',
-        confirmButtonColor: '#f44336',
-      });
+      showNotification('error', 'Imeshindikana kufuta kundi.');
     }
-  });
-};
+  };
+
+  /* ================= UI ================= */
   return (
     <div className="px-6 py-8 bg-gradient-to-tr from-white to-[#f0f4fc] min-h-screen relative">
+      {/* NOTIFICATION TOAST */}
       {notification && (
         <div
           className={`fixed top-5 right-5 px-4 py-2 rounded shadow-md z-50 ${
@@ -232,65 +192,54 @@ export default function MakundiTab({
       )}
 
       <div className="flex justify-between mb-6">
-        <h1 className="text-2xl font-bold flex items-center gap-2">
-          <FaUsers className="text-blue-600" /> Makundi ya Kanisa
-        </h1>
+        <h1 className="text-2xl font-bold">👥 Makundi ya Kanisa</h1>
         <button
           onClick={openAddDialog}
-          className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2 hover:bg-blue-500 transition"
+          className="bg-blue-600 text-white px-4 py-2 rounded-full flex items-center gap-2"
         >
           <FaPlus /> Ongeza Kundi
         </button>
       </div>
 
-      <div className="mb-6 flex gap-2 items-center max-w-md">
-        <FaSearch className="text-gray-400" />
+      <div className="mb-6 flex gap-2 items-center">
+        <FaSearch />
         <input
           value={searchQuery}
           onChange={handleSearch}
           placeholder="Tafuta jina / kiongozi / membership no"
-          className="flex-1 border px-4 py-2 rounded shadow-sm"
+          className="flex-1 border px-4 py-2 rounded"
         />
       </div>
 
-      {/* GROUP CARDS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {filteredGroups.map(group => (
           <div
             key={group.id}
             onClick={() => onGroupSelect(group.id)}
-            className="bg-white border border-gray-300 rounded-lg shadow hover:shadow-lg transition cursor-pointer p-6 flex flex-col justify-between relative"
+            className="bg-white p-6 rounded-xl shadow cursor-pointer relative"
           >
-            <div className="flex justify-center mb-4">
-              <FaUsers size={32} className="text-blue-500" />
+            <div className="mb-2 flex justify-center">
+              <FaUsers size={28} className="text-blue-500" />
             </div>
-            <h3 className="font-semibold text-center text-lg">{group.name}</h3>
+
+            <h3 className="font-semibold text-center">{group.name}</h3>
 
             {group.leader && (
               <p className="text-xs text-center text-gray-500 mt-1">
-                Kiongozi: {group.leader.full_name} ({group.leader.membership_number})
+                {group.leader.full_name} ({group.leader.membership_number})
               </p>
             )}
 
-            {group.whatsapp_link && (
-              <p className="text-xs text-center text-green-600 mt-2 flex justify-center items-center gap-1">
-                <FaWhatsapp /> 
-                <a href={group.whatsapp_link} target="_blank" rel="noreferrer" className="underline flex items-center gap-1">
-                  Ungana WhatsApp <FaLink />
-                </a>
-              </p>
-            )}
-
-            <div className="absolute top-3 right-3 flex gap-2">
+            <div className="absolute top-2 right-2 flex gap-2">
               <FaEdit
-                className="text-blue-500 hover:text-blue-700"
+                className="text-blue-500"
                 onClick={e => {
                   e.stopPropagation();
                   openEditDialog(group);
                 }}
               />
               <FaTrash
-                className="text-red-500 hover:text-red-700"
+                className="text-red-500"
                 onClick={e => {
                   e.stopPropagation();
                   deleteGroup(group.id);
@@ -304,9 +253,9 @@ export default function MakundiTab({
       {/* MODAL */}
       <Dialog open={isOpen} onClose={() => setIsOpen(false)} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="bg-white p-6 rounded-lg w-full max-w-sm space-y-4 shadow-lg">
-            <Dialog.Title className="font-semibold text-lg">
+        <div className="fixed inset-0 flex items-center justify-center">
+          <Dialog.Panel className="bg-white p-6 rounded-lg w-full max-w-sm space-y-4">
+            <Dialog.Title className="font-semibold">
               {editingGroup ? 'Hariri Kundi' : 'Ongeza Kundi'}
             </Dialog.Title>
 
@@ -317,7 +266,10 @@ export default function MakundiTab({
               onChange={handleInputChange}
               className="w-full border px-3 py-2 rounded"
             />
-            {errors.name && <p className="text-red-500 text-sm">{errors.name.join(', ')}</p>}
+
+            {errors.name && (
+              <p className="text-red-500 text-sm">{errors.name.join(', ')}</p>
+            )}
 
             <input
               name="leader_membership_number"
@@ -326,27 +278,19 @@ export default function MakundiTab({
               onChange={handleInputChange}
               className="w-full border px-3 py-2 rounded"
             />
-            {errors.leader_membership_number && (
-              <p className="text-red-500 text-sm">{errors.leader_membership_number.join(', ')}</p>
-            )}
 
-            <input
-              name="whatsapp_link"
-              placeholder="Weka link ya WhatsApp Group"
-              value={formData.whatsapp_link || ''}
-              onChange={handleInputChange}
-              className="w-full border px-3 py-2 rounded"
-            />
-            {errors.whatsapp_link && (
-              <p className="text-red-500 text-sm">{errors.whatsapp_link.join(', ')}</p>
+            {errors.leader_membership_number && (
+              <p className="text-red-500 text-sm">
+                {errors.leader_membership_number.join(', ')}
+              </p>
             )}
 
             <div className="flex justify-end gap-2">
-              <button onClick={() => setIsOpen(false)} className="px-4 py-2 border rounded hover:bg-gray-100">Ghairi</button>
+              <button onClick={() => setIsOpen(false)}>Ghairi</button>
               <button
                 onClick={saveGroup}
                 disabled={loading || !formData.name}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-500 transition"
+                className="bg-blue-600 text-white px-4 py-2 rounded"
               >
                 {loading ? 'Inahifadhi...' : 'Hifadhi'}
               </button>
