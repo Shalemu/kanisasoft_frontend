@@ -1198,10 +1198,10 @@ const paginatedMembers = filteredMembers.slice(startIndex, endIndex);
                 ) : (
             <span
               className={`inline-block px-3 py-2 rounded-md text-xs font-medium text-white ${
-                roleStyles[member.role || ''] || 'bg-gray-500'
+                roleStyles[(member.role || '').toLowerCase()] || 'bg-gray-500'
               }`}
             >
-              {roleLabels[member.role || ''] || 'Ameidhinishwa'}
+              {roleLabels[(member.role || '').toLowerCase()] || 'Ameidhinishwa'}
             </span>
                 )}
               </div>

@@ -1201,7 +1201,7 @@ const paginatedMembers = filteredMembers.slice(startIndex, endIndex);
                 roleStyles[(member.role || '').toLowerCase()] || 'bg-gray-500'
               }`}
             >
-              {roleLabels[(member.role || '').toLowerCase()] || member.role || 'Ameidhinishwa'}
+              {roleLabels[(member.role || '').toLowerCase()] || 'Ameidhinishwa'}
             </span>
                 )}
               </div>
