@@ -4,10 +4,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
-  output: 'export',          // ✅ Required for static export in Next.js 13+
-  trailingSlash: true,       // ✅ Ensures `/about` becomes `/about/index.html`
+  output: 'export',          
+  trailingSlash: true,       
   images: {
-    unoptimized: true        // ✅ Required since `next/image` optimization needs Node server
+    unoptimized: true       
   }
 };
 

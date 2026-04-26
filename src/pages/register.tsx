@@ -325,7 +325,7 @@ Swal.fire({
         ]} 
       />
 
-      {/* ✅ TAALUMA (HIARI) */}
+      {/* TAALUMA (HIARI) */}
       <Field
         label="Taaluma (Hiari)"
         name="profession"
