@@ -18,14 +18,7 @@ export default function OngezaTaarifaZaIbada() {
     leaders_on_duty: '',
   });
 
-  const serviceTypes = [
-    'Ibada ya kimataifa',
-    'Ibada ya Pili',
-    'Ibada ya Tatu',
-    'Ibada ya Vijana',
-    'Ibada ya wanawake',
-    'Ibada ya Neno la Mungu',
-  ];
+
 
   // Auto-calculate total attendance
   useEffect(() => {
@@ -104,22 +97,16 @@ export default function OngezaTaarifaZaIbada() {
         {/* Service Type */}
         <div className="flex flex-col">
           <label className="mb-1 font-medium text-gray-700">Aina ya Huduma</label>
-          <select
+            <input
+            type="text"
             required
+            placeholder="Ingiza jina la mhubiri"
             value={formData.service_name}
-            onChange={e => setFormData({ ...formData, service_name: e.target.value })}
+            onChange={e => setFormData({ ...formData, preacher: e.target.value })}
             className="border border-gray-300 px-4 py-3 rounded-md"
-          >
-            <option value="" disabled>
-              Chagua Huduma
-            </option>
-            {serviceTypes.map(type => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
+          />
         </div>
+       
 
         {/* Preacher */}
         <div className="flex flex-col">

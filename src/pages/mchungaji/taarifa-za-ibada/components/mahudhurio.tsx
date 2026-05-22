@@ -119,27 +119,60 @@ export default function MahudhurioDashboard() {
   };
 
   // Save edit
-  const saveEdit = async () => {
-    if (!editingService) return;
+const saveEdit = async () => {
+  if (!editingService) return;
 
-    try {
-      const res = await apiFetch(`/service-events/${editingService.id}`, {
-        method: 'PUT',
-        body: JSON.stringify(editFormData)
+  // Validation
+if (
+  !editFormData.service_name ||
+  !editFormData.preacher ||
+  !editFormData.date ||
+  editFormData.attendance_children === 0 ||
+  editFormData.attendance_women === 0 ||
+  editFormData.attendance_men === 0 ||
+  editFormData.total_offerings === 0
+)  {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Tafadhali Jaza Taarifa Zote',
+      text: 'Kuna sehemu muhimu hazijajazwa.',
+    });
+
+    return;
+  }
+
+  try {
+    const res = await apiFetch(`/service-events/${editingService.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(editFormData),
+    });
+
+    if (res.status === 'success') {
+      Swal.fire({
+        icon: 'success',
+        title: 'Imefanikiwa',
+        text: 'Taarifa imehifadhiwa.',
       });
 
-      if (res.status === 'success') {
-        Swal.fire({ icon: 'success', title: 'Imefanikiwa', text: 'Taarifa imehifadhiwa.' });
-        fetchAttendance();
-        setEditingService(null);
-      } else {
-        Swal.fire({ icon: 'error', title: 'Hitilafu', text: 'Imeshindikana kuhifadhi taarifa' });
-      }
-    } catch (err: any) {
-      console.error(err);
-      Swal.fire({ icon: 'error', title: 'Hitilafu', text: err.message || 'Tatizo la mtandao.' });
+      fetchAttendance();
+      setEditingService(null);
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Hitilafu',
+        text: res.message || 'Imeshindikana kuhifadhi taarifa',
+      });
     }
-  };
+  } catch (err: any) {
+    console.error(err);
+
+    Swal.fire({
+      icon: 'error',
+      title: 'Hitilafu',
+      text: err.message || 'Tatizo la mtandao.',
+    });
+  }
+};
 
   // Apply filters
   const filteredData = attendanceData.filter(item => {
@@ -418,39 +451,62 @@ export default function MahudhurioDashboard() {
           <input
             type="number"
             value={editFormData.attendance_children}
-            onChange={e => setEditFormData({ ...editFormData, attendance_children: parseInt(e.target.value) })}
+            onChange={e => setEditFormData({ ...editFormData, attendance_children: Number(e.target.value)})}
             className="border border-gray-300 rounded-lg px-3 py-2 text-base focus:ring-2 focus:ring-[#0b3d2f] focus:outline-none"
           />
         </div>
 
-        <div className="flex flex-col">
+               <div className="flex flex-col">
           <label className="text-gray-700 font-medium mb-1">Wanawake</label>
           <input
             type="number"
             value={editFormData.attendance_women}
-            onChange={e => setEditFormData({ ...editFormData, attendance_women: parseInt(e.target.value) })}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-base focus:ring-2 focus:ring-[#0b3d2f] focus:outline-none"
-          />
-        </div>
-        <div className="flex flex-col">
-          <label className="text-gray-700 font-medium mb-1">Wanaume</label>
-          <input
-            type="number"
-            value={editFormData.attendance_men}
-            onChange={e => setEditFormData({ ...editFormData, attendance_men: parseInt(e.target.value) })}
+            onChange={e => setEditFormData({ ...editFormData, attendance_women: Number(e.target.value)})}
             className="border border-gray-300 rounded-lg px-3 py-2 text-base focus:ring-2 focus:ring-[#0b3d2f] focus:outline-none"
           />
         </div>
 
-        <div className="flex flex-col">
-          <label className="text-gray-700 font-medium mb-1">Sadaka (TZS)</label>
-          <input
-            type="number"
-            value={editFormData.total_offerings}
-            onChange={e => setEditFormData({ ...editFormData, total_offerings: parseInt(e.target.value) })}
-            className="border border-gray-300 rounded-lg px-3 py-2 text-base focus:ring-2 focus:ring-[#0b3d2f] focus:outline-none"
-          />
-        </div>
+   <div className="flex flex-col">
+  <label className="text-gray-700 font-medium mb-1">
+    Wanaume
+  </label>
+
+  <input
+    type="number"
+    min={0}
+    required
+    value={editFormData.attendance_men}
+    onChange={e =>
+      setEditFormData({
+        ...editFormData,
+        attendance_men:
+        Number(e.target.value)
+      })
+    }
+    className="border border-gray-300 rounded-lg px-3 py-2 text-base focus:ring-2 focus:ring-[#0b3d2f] focus:outline-none"
+  />
+</div>
+
+   <div className="flex flex-col">
+  <label className="text-gray-700 font-medium mb-1">
+    Sadaka (TZS)
+  </label>
+
+  <input
+    type="number"
+    min={0}
+    required
+    value={editFormData.total_offerings}
+    onChange={e =>
+      setEditFormData({
+        ...editFormData,
+        total_offerings:
+       Number(e.target.value)
+      })
+    }
+    className="border border-gray-300 rounded-lg px-3 py-2 text-base focus:ring-2 focus:ring-[#0b3d2f] focus:outline-none"
+  />
+</div>
         <div className="flex flex-col">
           <label className="text-gray-700 font-medium mb-1">Viongozi</label>
           <input

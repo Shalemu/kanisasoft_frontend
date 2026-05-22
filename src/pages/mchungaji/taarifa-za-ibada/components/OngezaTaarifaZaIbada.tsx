@@ -18,23 +18,20 @@ export default function OngezaTaarifaZaIbada() {
     leaders_on_duty: '',
   });
 
-  const serviceTypes = [
-    'Ibada ya kimataifa',
-    'Ibada ya Pili',
-    'Ibada ya Tatu',
-    'Ibada ya Vijana',
-    'Ibada ya wanawake',
-    'Ibada ya Neno la Mungu',
-  ];
-
   // Auto-calculate total attendance
   useEffect(() => {
     setFormData(prev => ({
       ...prev,
       total_attendance:
-        prev.attendance_children + prev.attendance_women + prev.attendance_men,
+        Number(prev.attendance_children) +
+        Number(prev.attendance_women) +
+        Number(prev.attendance_men),
     }));
-  }, [formData.attendance_children, formData.attendance_women, formData.attendance_men]);
+  }, [
+    formData.attendance_children,
+    formData.attendance_women,
+    formData.attendance_men,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,166 +83,212 @@ export default function OngezaTaarifaZaIbada() {
 
   return (
     <div className="bg-white p-6 shadow-md">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">Ongeza Taarifa za Ibada</h2>
+      <h2 className="text-2xl font-bold mb-6 text-gray-800">
+        Ongeza Taarifa za Ibada
+      </h2>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Date */}
+      <form
+        onSubmit={handleSubmit}
+        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        {/* DATE */}
         <div className="flex flex-col">
           <label className="mb-1 font-medium text-gray-700">Tarehe</label>
           <input
             type="date"
             required
             value={formData.date}
-            onChange={e => setFormData({ ...formData, date: e.target.value })}
+            onChange={e =>
+              setFormData({ ...formData, date: e.target.value })
+            }
             className="border border-gray-300 px-4 py-3 rounded-md"
           />
         </div>
 
-        {/* Service Type */}
+        {/* AINA YA IBADA (INPUT NOT SELECT) */}
         <div className="flex flex-col">
-          <label className="mb-1 font-medium text-gray-700">Aina ya Huduma</label>
-          <select
+          <label className="mb-1 font-medium text-gray-700">
+            Aina ya Ibada
+          </label>
+          <input
+            type="text"
             required
+            placeholder="Ingiza aina ya ibada"
             value={formData.service_name}
-            onChange={e => setFormData({ ...formData, service_name: e.target.value })}
+            onChange={e =>
+              setFormData({ ...formData, service_name: e.target.value })
+            }
             className="border border-gray-300 px-4 py-3 rounded-md"
-          >
-            <option value="" disabled>
-              Chagua Huduma
-            </option>
-            {serviceTypes.map(type => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
+          />
         </div>
 
-        {/* Preacher */}
+        {/* PREACHER */}
         <div className="flex flex-col">
-          <label className="mb-1 font-medium text-gray-700">Mhubiri / Kiongozi</label>
+          <label className="mb-1 font-medium text-gray-700">Mhubiri</label>
           <input
             type="text"
             required
             placeholder="Ingiza jina la mhubiri"
             value={formData.preacher}
-            onChange={e => setFormData({ ...formData, preacher: e.target.value })}
-            className="border border-gray-300 px-4 py-3 rounded-md"
-          />
-        </div>
-
-        {/* Preacher Description */}
-        <div className="flex flex-col">
-          <label className="mb-1 font-medium text-gray-700">Mahubiri / Somo</label>
-          <input
-            type="text"
-            placeholder="Maelezo mafupi kuhusu mhubiri"
-            value={formData.preacher_description}
             onChange={e =>
-              setFormData({ ...formData, preacher_description: e.target.value })
+              setFormData({ ...formData, preacher: e.target.value })
             }
             className="border border-gray-300 px-4 py-3 rounded-md"
           />
         </div>
 
-        {/* Leaders on Duty */}
+        {/* DESCRIPTION */}
         <div className="flex flex-col">
-          <label className="mb-1 font-medium text-gray-700">Kiongozi Wa Ibada</label>
+          <label className="mb-1 font-medium text-gray-700">
+            Mahubiri / Somo
+          </label>
           <input
             type="text"
-            placeholder="Weka Jina la Kiongozi wa Ibada"
-            value={formData.leaders_on_duty}
-            onChange={e => setFormData({ ...formData, leaders_on_duty: e.target.value })}
+            placeholder="Maelezo mafupi ya ujumbe"
+            value={formData.preacher_description}
+            onChange={e =>
+              setFormData({
+                ...formData,
+                preacher_description: e.target.value,
+              })
+            }
             className="border border-gray-300 px-4 py-3 rounded-md"
           />
         </div>
 
-        {/* Attendance: Children */}
+        {/* LEADERS */}
+        <div className="flex flex-col">
+          <label className="mb-1 font-medium text-gray-700">
+            Kiongozi wa Ibada
+          </label>
+          <input
+            type="text"
+            placeholder="Ingiza jina la kiongozi"
+            value={formData.leaders_on_duty}
+            onChange={e =>
+              setFormData({
+                ...formData,
+                leaders_on_duty: e.target.value,
+              })
+            }
+            className="border border-gray-300 px-4 py-3 rounded-md"
+          />
+        </div>
+
+        {/* CHILDREN */}
         <div className="flex flex-col">
           <label className="mb-1 font-medium text-gray-700">Watoto</label>
           <input
             type="number"
             min={0}
-            value={formData.attendance_children}
+            placeholder="Idadi ya watoto"
+            value={formData.attendance_children || ''}
             onChange={e =>
-              setFormData({ ...formData, attendance_children: Number(e.target.value) })
+              setFormData({
+                ...formData,
+                attendance_children: Number(e.target.value),
+              })
             }
             className="border border-gray-300 px-4 py-3 rounded-md"
           />
         </div>
 
-        {/* Attendance: Women */}
+        {/* WOMEN */}
         <div className="flex flex-col">
           <label className="mb-1 font-medium text-gray-700">Wanawake</label>
           <input
             type="number"
             min={0}
-            value={formData.attendance_women}
+            placeholder="Idadi ya wanawake"
+            value={formData.attendance_women || ''}
             onChange={e =>
-              setFormData({ ...formData, attendance_women: Number(e.target.value) })
+              setFormData({
+                ...formData,
+                attendance_women: Number(e.target.value),
+              })
             }
             className="border border-gray-300 px-4 py-3 rounded-md"
           />
         </div>
 
-        {/* Attendance: Men */}
+        {/* MEN */}
         <div className="flex flex-col">
           <label className="mb-1 font-medium text-gray-700">Wanaume</label>
           <input
             type="number"
             min={0}
-            value={formData.attendance_men}
+            placeholder="Idadi ya wanaume"
+            value={formData.attendance_men || ''}
             onChange={e =>
-              setFormData({ ...formData, attendance_men: Number(e.target.value) })
+              setFormData({
+                ...formData,
+                attendance_men: Number(e.target.value),
+              })
             }
             className="border border-gray-300 px-4 py-3 rounded-md"
           />
         </div>
 
-        {/* Total Attendance & Total Offerings in one row */}
-      <div className="flex flex-col md:flex-row gap-4 md:col-span-2">
-        {/* Total Attendance */}
-        <div className="flex flex-col flex-1">
-          <label className="mb-1 font-medium text-gray-700">Jumla ya Mahudhurio</label>
+        {/* TOTAL */}
+        <div className="flex flex-col md:col-span-2">
+          <label className="mb-1 font-medium text-gray-700">
+            Jumla ya Mahudhurio
+          </label>
           <input
             type="number"
-            value={formData.total_attendance}
             readOnly
+            value={formData.total_attendance}
             className="border border-gray-300 px-4 py-3 rounded-md bg-gray-100"
           />
         </div>
 
-        {/* Total Offerings */}
-        <div className="flex flex-col flex-1">
-          <label className="mb-1 font-medium text-gray-700">Jumla ya Sadaka (Tsh)</label>
+        {/* OFFERINGS */}
+        <div className="flex flex-col">
+          <label className="mb-1 font-medium text-gray-700">
+            Sadaka (TZS)
+          </label>
+
           <input
-            type="number"
-            min={0}
-            value={formData.total_offerings}
+            type="text"
+            inputMode="numeric"
+            placeholder="Ingiza kiasi cha sadaka"
+            value={
+              formData.total_offerings === 0 || formData.total_offerings === null
+                ? ''
+                : Number(formData.total_offerings).toLocaleString()
+            }
+            onChange={e => {
+              const raw = e.target.value.replace(/,/g, '');
+              const numberValue = raw === '' ? 0 : Number(raw);
+
+              setFormData({
+                ...formData,
+                total_offerings: numberValue,
+              });
+            }}
+            className="border border-gray-300 px-4 py-3 rounded-md"
+          />
+        </div>
+        {/* MESSAGE */}
+        <div className="flex flex-col md:col-span-2">
+          <label className="mb-1 font-medium text-gray-700">
+            Ujumbe / Maelezo
+          </label>
+          <textarea
+            placeholder="Andika maelezo yoyote ya ziada..."
+            value={formData.message}
             onChange={e =>
-              setFormData({ ...formData, total_offerings: Number(e.target.value) })
+              setFormData({ ...formData, message: e.target.value })
             }
             className="border border-gray-300 px-4 py-3 rounded-md"
           />
         </div>
-      </div>
 
-        {/* Message */}
-        <div className="flex flex-col md:col-span-2">
-          <label className="mb-1 font-medium text-gray-700">Ujumbe / Maelezo</label>
-          <textarea
-            value={formData.message}
-            onChange={e => setFormData({ ...formData, message: e.target.value })}
-            placeholder="Maelezo yoyote ya ziada..."
-            className="border border-gray-300 px-4 py-3 rounded-md"
-          />
-        </div>
-
-        {/* Submit */}
+        {/* SUBMIT */}
         <div className="md:col-span-2">
           <button
             type="submit"
-            className="w-full bg-blue-800 text-white px-6 py-3 font-semibold rounded-md shadow hover:bg-blue-700 transition"
+            className="w-full bg-[#1e293b] text-white px-6 py-3 font-semibold rounded-md hover:bg-[#0f172a]"
           >
             Ongeza Taarifa
           </button>
