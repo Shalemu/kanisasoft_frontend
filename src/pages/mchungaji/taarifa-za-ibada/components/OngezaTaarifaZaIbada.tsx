@@ -108,7 +108,7 @@ export default function OngezaTaarifaZaIbada() {
         {/* AINA YA IBADA (INPUT NOT SELECT) */}
         <div className="flex flex-col">
           <label className="mb-1 font-medium text-gray-700">
-            Aina ya Ibada
+            Aina za Ibada
           </label>
           <input
             type="text"
